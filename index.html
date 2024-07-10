@@ -444,6 +444,35 @@
 		function computerPlay() {
 		    if (!gameStarted || currentPlayer !== 2 || !isComputerPlay) return;
 
+		    // 檢查是否有機會獲勝
+		    const winningMove = findWinningMove(2);
+		    if (winningMove) {
+		        makeMove(winningMove.row, winningMove.col, 2);
+		        return;
+		    }
+
+		    // 檢查是否需要阻擋對手獲勝
+		    const blockingMove = findWinningMove(1);
+		    if (blockingMove) {
+		        makeMove(blockingMove.row, blockingMove.col, 2);
+		        return;
+		    }
+
+		    // 尋找可以形成四子連線的位置
+		    const fourInARowMove = findNInARowMove(4, 2);
+		    if (fourInARowMove) {
+		        makeMove(fourInARowMove.row, fourInARowMove.col, 2);
+		        return;
+		    }
+
+		    // 尋找可以形成三子連線的位置
+		    const threeInARowMove = findNInARowMove(3, 2);
+		    if (threeInARowMove) {
+		        makeMove(threeInARowMove.row, threeInARowMove.col, 2);
+		        return;
+		    }
+
+		    // 如果沒有特別好的位置，就隨機選擇一個有效位置
 		    const emptyCells = [];
 		    for (let i = 0; i < size; i++) {
 		        for (let j = 0; j < size; j++) {
@@ -454,10 +483,67 @@
 		    }
 		    if (emptyCells.length > 0) {
 		        const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-		        selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-		        document.getElementById('char-input2').value = characters[Math.floor(Math.random() * characters.length)];
-		        placeCharacter(2);
+		        makeMove(row, col, 2);
 		    }
+		}
+
+		function findWinningMove(player) {
+		    for (let i = 0; i < size; i++) {
+		        for (let j = 0; j < size; j++) {
+		            if (board[i][j] === '' && isValidPlacement(i, j)) {
+		                board[i][j] = 'temp';
+		                if (checkWin(i, j, player)) {
+		                    board[i][j] = '';
+		                    return { row: i, col: j };
+		                }
+		                board[i][j] = '';
+		            }
+		        }
+		    }
+		    return null;
+		}
+
+		function findNInARowMove(n, player) {
+		    for (let i = 0; i < size; i++) {
+		        for (let j = 0; j < size; j++) {
+		            if (board[i][j] === '' && isValidPlacement(i, j)) {
+		                if (checkNInARow(i, j, n, player)) {
+		                    return { row: i, col: j };
+		                }
+		            }
+		        }
+		    }
+		    return null;
+		}
+
+		function checkNInARow(row, col, n, player) {
+		    const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
+		    for (let [dx, dy] of directions) {
+		        let count = 1;
+		        let r = row, c = col;
+		        while (count < n) {
+		            r += dx;
+		            c += dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] !== player) break;
+		            count++;
+		        }
+		        r = row;
+		        c = col;
+		        while (count < n) {
+		            r -= dx;
+		            c -= dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] !== player) break;
+		            count++;
+		        }
+		        if (count >= n) return true;
+		    }
+		    return false;
+		}
+
+		function makeMove(row, col, player) {
+		    selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+		    document.getElementById(`char-input${player}`).value = characters[Math.floor(Math.random() * characters.length)];
+		    placeCharacter(player);
 		}
 
 		function checkWarnings() {
@@ -524,9 +610,9 @@
 		    if (gameStarted) return;
 		    gameStarted = true;
 		    initializeBoard();
-		    resetScores();  // 重置分數
+		    resetScores();
 		    setFirstCharacter();
-		    startTimer();
+		    resetTimer(); // 使用 resetTimer 而不是 startTimer
 		    document.getElementById('start-button').disabled = true;
 		    setMessage("遊戲開始！玩家1先行");
 		    if (isComputerPlay) {
