@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成語接龍遊戲</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #game-container {
+            width: 300px;
+            text-align: center;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>成語接龍</h1>
+        <p id="current-idiom">開始遊戲</p>
+        <input type="text" id="user-input" placeholder="輸入下一個成語">
+        <button onclick="submitIdiom()">提交</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+		const idioms = [
+		    "一帆風順", "順水推舟", "舟車勞頓", "頓開茅塞",
+		    "塞翁失馬", "馬到成功", "功成名就", "就地正法",
+		    "法外開恩", "恩將仇報", "報仇雪恨", "恨之入骨",
+		    "骨肉相連", "連鎖反應", "應接不暇", "暇豫周旋",
+		    "旋轉乾坤", "坤輿萬國", "國泰民安", "安居樂業",
+		    // ... 繼續添加更多成語
+		];
+        let currentIdiom = "";
+
+        function startGame() {
+            currentIdiom = idioms[Math.floor(Math.random() * idioms.length)];
+            document.getElementById("current-idiom").textContent = currentIdiom;
+        }
+
+        function submitIdiom() {
+            const userInput = document.getElementById("user-input").value;
+            const message = document.getElementById("message");
+
+            if (userInput.length !== 4) {
+                message.textContent = "請輸入四字成語";
+                return;
+            }
+
+            if (userInput[0] !== currentIdiom[3]) {
+                message.textContent = "請輸入以「" + currentIdiom[3] + "」開頭的成語";
+                return;
+            }
+
+            if (idioms.includes(userInput)) {
+                currentIdiom = userInput;
+                document.getElementById("current-idiom").textContent = currentIdiom;
+                document.getElementById("user-input").value = "";
+                message.textContent = "答對了！請繼續。";
+            } else {
+                message.textContent = "這個成語不在我們的列表中，請再試一次。";
+            }
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
