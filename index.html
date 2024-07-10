@@ -176,212 +176,363 @@
 
 
     <script>
-        let isComputerPlay = false;
-        let gameStarted = false;
-        let currentPlayer = 1;
-        let selectedCell = null;
-        let scores = [0, 0];
-        let timerInterval = null;
-        let size = 12;
-        let board = Array.from({ length: size }, () => Array(size).fill(''));
-        let characters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+		const board = [];
+		const size = 12;
+		let currentPlayer = 1;
+		const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰';
+		let timeLeft = 60;
+		let timerInterval;
+		let scores = [0, 0];
+		let gameStarted = false;
+		let isComputerPlay = false;
+		let firstChar = null;
+		let selectedCell = null;
 
-        function toggleComputerPlay() {
-            isComputerPlay = !isComputerPlay;
-            document.getElementById('computer-play').textContent = isComputerPlay ? '取消電腦對戰' : '電腦對戰';
-            if (isComputerPlay) {
-                document.getElementById('char-input2').disabled = true;
-                document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
-            } else {
-                document.getElementById('char-input2').disabled = false;
-                document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
-            }
-            if (gameStarted && currentPlayer === 2 && isComputerPlay) {
-                setTimeout(computerPlay, 1000);
-            }
-        }
+		// 版本信息
+		const version = "1.0.0";
+		const buildDate = new Date().toISOString();
 
-        function startGame() {
-            if (gameStarted) return;
-            gameStarted = true;
-            initializeBoard();
-            setFirstCharacter();
-            startTimer();
-            document.getElementById('start-button').disabled = true;
-            setMessage("遊戲開始！玩家1先行");
-            if (isComputerPlay) {
-                document.getElementById('char-input2').disabled = true;
-                document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
-            }
-        }
+		function initializeGame() {
+		    initializeBoard();
+		    setMessage("點擊「開始遊戲」按鈕開始");
+		    updateVersionInfo();
+		}
 
-        function placeCharacter(player) {
-            if (!gameStarted || player !== currentPlayer) return;
-            if (!selectedCell) {
-                setMessage("請先選擇一個格子");
-                return;
-            }
+		function updateVersionInfo() {
+		    const versionInfoElement = document.getElementById('version-info');
+		    versionInfoElement.textContent = `版本: ${version} | 建立時間: ${buildDate}`;
+		}
 
-            const char = document.getElementById(`char-input${player}`).value;
-            if (char.length !== 1) {
-                setMessage("請輸入一個字");
-                return;
-            }
+		function initializeBoard() {
+		    const boardElement = document.getElementById('board');
+		    boardElement.innerHTML = '';
+		    for (let i = 0; i < size; i++) {
+		        board[i] = [];
+		        for (let j = 0; j < size; j++) {
+		            board[i][j] = '';
+		            const cell = document.createElement('div');
+		            cell.className = 'cell';
+		            cell.dataset.row = i;
+		            cell.dataset.col = j;
+		            cell.addEventListener('click', () => selectCell(i, j));
+		            boardElement.appendChild(cell);
+		        }
+		    }
+		}
 
-            const row = parseInt(selectedCell.dataset.row);
-            const col = parseInt(selectedCell.dataset.col);
+		function toggleComputerPlay() {
+		    isComputerPlay = !isComputerPlay;
+		    document.getElementById('computer-play').textContent = isComputerPlay ? '取消電腦對戰' : '電腦對戰';
+		    if (isComputerPlay) {
+		        document.getElementById('char-input2').disabled = true;
+		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
+		    } else {
+		        document.getElementById('char-input2').disabled = false;
+		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
+		    }
+		    if (gameStarted && currentPlayer === 2 && isComputerPlay) {
+		        setTimeout(computerPlay, 1000);
+		    }
+		}
 
-            if (!isValidPlacement(row, col)) {
-                setMessage("無效的放置位置，必須與已有的字相連");
-                return;
-            }
+		function startGame() {
+		    if (gameStarted) return;
+		    gameStarted = true;
+		    initializeBoard();
+		    setFirstCharacter();
+		    startTimer();
+		    document.getElementById('start-button').disabled = true;
+		    setMessage("遊戲開始！玩家1先行");
+		    if (isComputerPlay) {
+		        document.getElementById('char-input2').disabled = true;
+		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
+		    }
+		}
 
-            board[row][col] = char;
-            selectedCell.textContent = char;
-            selectedCell.style.color = player === 1 ? 'blue' : 'red';
+		function setFirstCharacter() {
+		    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+		    const centerRow = Math.floor(size / 2);
+		    const centerCol = Math.floor(size / 2);
+		    board[centerRow][centerCol] = randomChar;
+		    firstChar = randomChar;
+		    const cell = document.querySelector(`[data-row="${centerRow}"][data-col="${centerCol}"]`);
+		    cell.textContent = randomChar;
+		    cell.style.color = 'green';
+		}
 
-            // 增加基本得分
-            scores[player - 1] += 1;
+		function selectCell(row, col) {
+		    if (!gameStarted || board[row][col] !== '') return;
+		    if (selectedCell) {
+		        selectedCell.style.backgroundColor = '#fff';
+		    }
+		    selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+		    selectedCell.style.backgroundColor = '#e0e0e0';
+		}
 
-            // 檢查成語得分
-            checkIdiomScore(row, col);
+		function placeCharacter(player) {
+		    if (!gameStarted || player !== currentPlayer) return;
+		    if (!selectedCell) {
+		        setMessage("請先選擇一個格子");
+		        return;
+		    }
 
-            updateScores();
+		    const char = document.getElementById(`char-input${player}`).value;
+		    if (char.length !== 1) {
+		        setMessage("請輸入一個字");
+		        return;
+		    }
 
-            if (checkWin(row, col, player)) {
-                setMessage(`玩家 ${player} 獲勝！`);
-                endGame();
-            } else {
-                currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
-                setMessage(`輪到玩家 ${currentPlayer}`);
-                resetTimer();
-                if (isComputerPlay && currentPlayer === 2) {
-                    setTimeout(computerPlay, 1000);
-                }
-            }
+		    const row = parseInt(selectedCell.dataset.row);
+		    const col = parseInt(selectedCell.dataset.col);
 
-            selectedCell.style.backgroundColor = '#fff';
-            selectedCell = null;
-            document.getElementById(`char-input${player}`).value = '';
+		    if (!isValidPlacement(row, col)) {
+		        setMessage("無效的放置位置，必須與已有的字相連");
+		        return;
+		    }
 
-            checkWarnings();
-        }
+		    board[row][col] = char;
+		    selectedCell.textContent = char;
+		    selectedCell.style.color = player === 1 ? 'blue' : 'red';
 
-        function computerPlay() {
-            if (!gameStarted || currentPlayer !== 2 || !isComputerPlay) return;
+		    // 增加基本得分
+		    scores[player - 1] += 1;
 
-            const emptyCells = [];
-            for (let i = 0; i < size; i++) {
-                for (let j = 0; j < size; j++) {
-                    if (board[i][j] === '' && isValidPlacement(i, j)) {
-                        emptyCells.push([i, j]);
-                    }
-                }
-            }
-            if (emptyCells.length > 0) {
-                const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                document.getElementById('char-input2').value = characters[Math.floor(Math.random() * characters.length)];
-                placeCharacter(2);
-            }
-        }
+		    // 檢查成語得分
+		    checkIdiomScore(row, col);
 
-        function initializeBoard() {
-            const boardElement = document.getElementById('board');
-            boardElement.innerHTML = '';
-            for (let i = 0; i < size; i++) {
-                for (let j = 0; j < size; j++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.dataset.row = i;
-                    cell.dataset.col = j;
-                    cell.addEventListener('click', () => selectCell(cell));
-                    boardElement.appendChild(cell);
-                }
-            }
-        }
+		    updateScores();
 
-        function selectCell(cell) {
-            if (selectedCell) {
-                selectedCell.style.backgroundColor = '#fff';
-            }
-            selectedCell = cell;
-            selectedCell.style.backgroundColor = '#ccc';
-        }
+		    if (checkWin(row, col, player)) {
+		        setMessage(`玩家 ${player} 獲勝！`);
+		        endGame();
+		    } else {
+		        currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
+		        setMessage(`輪到玩家 ${currentPlayer}`);
+		        resetTimer();
+		        if (isComputerPlay && currentPlayer === 2) {
+		            setTimeout(computerPlay, 1000);
+		        }
+		    }
 
-        function setFirstCharacter() {
-            const row = Math.floor(size / 2);
-            const col = Math.floor(size / 2);
-            const firstChar = characters[Math.floor(Math.random() * characters.length)];
-            board[row][col] = firstChar;
-            const firstCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            firstCell.textContent = firstChar;
-            firstCell.style.color = 'black';
-        }
+		    selectedCell.style.backgroundColor = '#fff';
+		    selectedCell = null;
+		    document.getElementById(`char-input${player}`).value = '';
 
-        function startTimer() {
-            let timeLeft = 60;
-            const timerElement = document.getElementById('timer');
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerElement.textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    setMessage(`玩家 ${currentPlayer} 超時，遊戲結束！`);
-                    endGame();
-                }
-            }, 1000);
-        }
+		    checkWarnings();
+		}
 
-        function resetTimer() {
-            clearInterval(timerInterval);
-            startTimer();
-        }
+		function isValidPlacement(row, col) {
+		    if (row === Math.floor(size / 2) && col === Math.floor(size / 2)) return true;
+		    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
+		    for (let [dx, dy] of directions) {
+		        const newRow = row + dx;
+		        const newCol = col + dy;
+		        if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size && board[newRow][newCol] !== '') {
+		            return true;
+		        }
+		    }
+		    return false;
+		}
 
-        function setMessage(message) {
-            document.getElementById('message').textContent = message;
-        }
+		function checkIdiomScore(row, col) {
+		    const directions = [
+		        [1, 0], [0, 1], [1, 1], [1, -1]
+		    ];
 
-        function updateScores() {
-            document.getElementById('score1').textContent = scores[0];
-            document.getElementById('score2').textContent = scores[1];
-        }
+		    for (let [dx, dy] of directions) {
+		        let idiom = board[row][col];
+		        let r = row, c = col;
 
-        function checkIdiomScore(row, col) {
-            // 這裡需要實現檢查成語的邏輯
-        }
+		        // 向一個方向檢查
+		        for (let i = 1; i < 4; i++) {
+		            r += dx;
+		            c += dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            idiom += board[r][c];
+		        }
 
-        function checkWin(row, col, player) {
-            // 這裡需要實現檢查勝利條件的邏輯
-            return false; // 默認返回false
-        }
+		        r = row;
+		        c = col;
 
-        function checkWarnings() {
-            // 這裡需要實現檢查黃色警告框的邏輯
-        }
+		        // 向相反方向檢查
+		        for (let i = 1; i < 4; i++) {
+		            r -= dx;
+		            c -= dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            idiom = board[r][c] + idiom;
+		        }
 
-        function isValidPlacement(row, col) {
-            const directions = [
-                [0, 1], [1, 0], [0, -1], [-1, 0],
-                [1, 1], [1, -1], [-1, 1], [-1, -1]
-            ];
-            return directions.some(([dx, dy]) => {
-                const x = row + dx;
-                const y = col + dy;
-                return x >= 0 && x < size && y >= 0 && y < size && board[x][y] !== '';
-            });
-        }
+		        if (idiom.length === 4) {
+		            scores[currentPlayer - 1] += 2;
+		        }
+		    }
+		}
 
-        // 確保在遊戲結束時重置電腦對戰狀態
-        function endGame() {
-            gameStarted = false;
-            clearInterval(timerInterval);
-            document.getElementById('start-button').disabled = false;
-            if (isComputerPlay) {
-                document.getElementById('char-input2').disabled = false;
-                document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
-            }
-        }
+		function checkWin(row, col, player) {
+		    const directions = [
+		        [1, 0], [0, 1], [1, 1], [1, -1]
+		    ];
+
+		    for (let [dx, dy] of directions) {
+		        let count = 1;
+		        let r = row, c = col;
+
+		        while (count < 5) {
+		            r += dx;
+		            c += dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            const cellColor = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color;
+		            if (cellColor !== 'green' && cellColor !== (player === 1 ? 'blue' : 'red')) {
+		                break;
+		            }
+		            count++;
+		        }
+
+		        r = row;
+		        c = col;
+
+		        while (count < 5) {
+		            r -= dx;
+		            c -= dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            const cellColor = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color;
+		            if (cellColor !== 'green' && cellColor !== (player === 1 ? 'blue' : 'red')) {
+		                break;
+		            }
+		            count++;
+		        }
+
+		        if (count >= 5) {
+		            return true;
+		        }
+		    }
+
+		    return false;
+		}
+
+		function computerPlay() {
+		    if (!gameStarted || currentPlayer !== 2 || !isComputerPlay) return;
+
+		    const emptyCells = [];
+		    for (let i = 0; i < size; i++) {
+		        for (let j = 0; j < size; j++) {
+		            if (board[i][j] === '' && isValidPlacement(i, j)) {
+		                emptyCells.push([i, j]);
+		            }
+		        }
+		    }
+		    if (emptyCells.length > 0) {
+		        const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+		        selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+		        document.getElementById('char-input2').value = characters[Math.floor(Math.random() * characters.length)];
+		        placeCharacter(2);
+		    }
+		}
+
+		function checkWarnings() {
+		    const cells = document.querySelectorAll('.cell');
+		    cells.forEach(cell => cell.classList.remove('warning'));
+
+		    for (let i = 0; i < size; i++) {
+		        for (let j = 0; j < size; j++) {
+		            if (board[i][j] === '') {
+		                if (checkThreeOrFour(i, j, 3, false) || checkThreeOrFour(i, j, 4, true)) {
+		                    document.querySelector(`[data-row="${i}"][data-col="${j}"]`).classList.add('warning');
+		                }
+		            }
+		        }
+		    }
+		}
+
+		function checkThreeOrFour(row, col, target, isDead) {
+		    const directions = [
+		        [1, 0], [0, 1], [1, 1], [1, -1]
+		    ];
+
+		    for (let [dx, dy] of directions) {
+		        let count = 0;
+		        let empty = 0;
+		        let r = row, c = col;
+
+		        for (let i = 0; i < 5; i++) {
+		            if (r < 0 || r >= size || c < 0 || c >= size) {
+		                break;
+		            }
+		            if (board[r][c] === '') {
+		                empty++;
+		            } else {
+		                count++;
+		            }
+		            r += dx;
+		            c += dy;
+		        }
+
+		        r = row - dx;
+		        c = col - dy;
+		        if (r >= 0 && r < size && c >= 0 && c < size) {
+		            if (board[r][c] === '') {
+		                empty++;
+		            } else {
+		                count++;
+		            }
+		        }
+
+		        if (count === target && (isDead ? empty === 1 : empty > 1)) {
+		            return true;
+		        }
+		    }
+
+		    return false;
+		}
+
+		function setMessage(msg) {
+		    document.getElementById('message').textContent = msg;
+		}
+
+		function startTimer() {
+		    timerInterval = setInterval(() => {
+		        timeLeft--;
+		        document.getElementById('timer').textContent = timeLeft;
+		        if (timeLeft === 0) {
+		            clearInterval(timerInterval);
+		            setMessage(`時間到！玩家 ${currentPlayer} 輸了！`);
+		            endGame();
+		        }
+		    }, 1000);
+		}
+
+		function resetTimer() {
+		    clearInterval(timerInterval);
+		    timeLeft = 60;
+		    document.getElementById('timer').textContent = timeLeft;
+		    startTimer();
+		}
+
+		function updateScores() {
+		    document.getElementById('score1').textContent = scores[0];
+		    document.getElementById('score2').textContent = scores[1];
+		}
+
+		function endGame() {
+		    gameStarted = false;
+		    clearInterval(timerInterval);
+		    document.getElementById('start-button').disabled = false;
+		    if (isComputerPlay) {
+		        document.getElementById('char-input2').disabled = false;
+		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
+		    }
+		}
+
+		// 初始化遊戲
+		initializeGame();
     </script>
 </body>
 </html>
