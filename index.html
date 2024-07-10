@@ -374,11 +374,13 @@
 
 		    updateScores();
 
-		    if (checkWin(row, col, player)) {
-		        setMessage(`玩家 ${player} 獲勝！`);
-		        showWinner(player);
-		        endGame(false);
-		    } else {
+			if (checkWin(row, col, player)) {
+			    const winningCells = checkWin(row, col, player);
+			    highlightWinningCells(winningCells);
+			    setMessage(`玩家 ${player} 獲勝！`);
+			    showWinner(player);
+			    endGame(false);
+			} else {
 		        currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
 		        setMessage(`輪到玩家 ${currentPlayer}`);
 		        resetTimer();
@@ -467,10 +469,12 @@
 		    const directions = [
 		        [1, 0], [0, 1], [1, 1], [1, -1]
 		    ];
+		    const winningCells = [];
 
 		    for (let [dx, dy] of directions) {
 		        let count = 1;
 		        let r = row, c = col;
+		        const tempWinningCells = [[row, col]];
 
 		        while (count < 5) {
 		            r += dx;
@@ -482,6 +486,7 @@
 		            if (cellColor !== 'green' && cellColor !== (player === 1 ? 'blue' : 'red')) {
 		                break;
 		            }
+		            tempWinningCells.push([r, c]);
 		            count++;
 		        }
 
@@ -498,15 +503,24 @@
 		            if (cellColor !== 'green' && cellColor !== (player === 1 ? 'blue' : 'red')) {
 		                break;
 		            }
+		            tempWinningCells.unshift([r, c]);
 		            count++;
 		        }
 
 		        if (count >= 5) {
-		            return true;
+		            winningCells.push(...tempWinningCells.slice(0, 5));
+		            return winningCells;
 		        }
 		    }
 
-		    return false;
+		    return null;
+		}
+		function highlightWinningCells(cells) {
+		    cells.forEach(([row, col]) => {
+		        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+		        cell.style.backgroundColor = 'black';
+		        cell.style.color = 'white';
+		    });
 		}
 
 		function computerPlay() {
