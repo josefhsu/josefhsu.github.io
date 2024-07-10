@@ -98,7 +98,7 @@
 		    padding: 20px;
 		    border-radius: 10px;
 		}
-        #start-button, #computer-play, #end-game-button {
+        #start-button, #computer-play, #abort-game-button {
             font-size: 16px;
             padding: 10px 20px;
             margin-top: -30px;
@@ -160,13 +160,13 @@
         <div id="left-panel">
             <div class="player-section">
 				<div class="player-avatar" style="background-color: blue;"></div>
-                <div class="score">玩家1分數: <span id="score1">0</span></div>
+                <div class="score">玩家1 分數: <span id="score1">0</span></div>
                 <input type="text" id="char-input1" maxlength="1" placeholder="玩家1輸入">
                 <button onclick="placeCharacter(1)">放置</button>
             </div>
             <div class="player-section">
                 <div class="player-avatar" style="background-color: red;"></div>
-                <div class="score">玩家2分數: <span id="score2">0</span></div>
+                <div class="score">玩家2 分數: <span id="score2">0</span></div>
                 <input type="text" id="char-input2" maxlength="1" placeholder="玩家2輸入">
                 <button onclick="placeCharacter(2)">放置</button>
             </div>
@@ -177,7 +177,7 @@
             <p id="message"></p>
             <p id="timer">60</p>
             <button id="start-button" onclick="startGame()">開始遊戲</button>
-			<button id="end-game-button" onclick="endGame()">終止遊戲</button>
+			<button id="abort-game-button" onclick="endGame(true)" disabled>中止遊戲</button>
             <button id="computer-play" onclick="toggleComputerPlay()">電腦對戰</button>
         </div>
         <div id="right-panel">
@@ -204,7 +204,7 @@
 		const board = [];
 		const size = 12;
 		let currentPlayer = 1;
-		const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰';
+		const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰一二三四五六七八九紅橙黃綠藍紫';
 		let timeLeft = 60;
 		let timerInterval;
 		let scores = [0, 0];
@@ -216,6 +216,26 @@
 		// 版本信息
 		const version = "1.0.0";
 		const buildDate = new Date().toISOString();
+		
+		// 成語字典
+		const idiomDictionary = [
+		    "一心一意", "三心二意", "四面楚歌", "五光十色", "六神無主",
+		    "七上八下", "八面玲瓏", "九牛一毛", "十全十美", "百發百中",
+		    "千方百計", "萬無一失", "天長地久", "日月如梭", "風雨無阻",
+		    "山明水秀", "春暖花開", "夏日炎炎", "秋高氣爽", "冬雪皚皚",
+            "一帆風順","順水推舟","舟車勞頓","頓開茅塞","塞翁失馬","馬到成功","功成名就","就事論事","事半功倍","倍道而進",
+            "進退維谷","谷馬砲射","射人先射馬","馬革裹屍","屍山血海","海枯石爛","爛若披錦","錦上添花","花團錦簇","簇簇繁花",
+            "花好月圓","圓夢成真","真知灼見","見微知著","著作等身","身不由己","己所不欲","欲罷不能","能言善道","道聽途說",
+            "說一不二","二話不說","說長道短","短兵相接","接二連三","三生有幸","幸運之神","神出鬼沒","沒齒難忘","忘乎所以",
+            "以身作則","則無旁貸","貸款利息","息息相關","關懷備至","至高無上","上行下效","效犬馬力","力挽狂瀾","瀾倒波隨",
+            "隨波逐流","流連忘返","返老還童","童言無忌","忌諱莫深","深入淺出","出類拔萃","萃取精華","華而不實","實事求是",
+            "是非分明","明哲保身","身臨其境","境由心生","生龍活虎","虎視眈眈","眈眈相向","向隅而泣","泣不成聲","聲勢浩大",
+            "大材小用","用兵如神","神乎其技","技術高超","超凡入聖","聖人君子","子虛烏有","有口皆碑","碑堅石穿","穿針引線",
+            "線斷風箏","箏聲繞樑","樑上君子","子孫滿堂","堂堂正正","正大光明","明知故犯","犯上作亂","亂七八糟","糟糕透頂",
+            "頂天立地","地動山搖","搖旗吶喊","喊冤叫屈","屈打成招","招搖過市","市井無賴","賴皮賴臉","臉紅耳赤","赤地千里",
+            "里程碑立","立竿見影","影形不離","離心離德","德高望重","重整旗鼓","鼓舞人心","心悅誠服","服服貼貼","貼心貼肺"
+		    // ... 可以繼續添加更多成語
+		];
 
 		function initializeGame() {
 		    initializeBoard();
@@ -247,7 +267,7 @@
 
 		function toggleComputerPlay() {
 		    isComputerPlay = !isComputerPlay;
-		    document.getElementById('computer-play').textContent = isComputerPlay ? '取消電腦對戰' : '電腦對戰';
+		    document.getElementById('computer-play').textContent = isComputerPlay ? '取消電腦' : '電腦對戰';
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = true;
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
@@ -293,6 +313,26 @@
 		    selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
 		    selectedCell.style.backgroundColor = '#e0e0e0';
 		}
+		function showWinner(player) {
+		    const winnerMessage = document.createElement('div');
+		    winnerMessage.id = 'winner-message';
+		    winnerMessage.style.position = 'fixed';
+		    winnerMessage.style.top = '50%';
+		    winnerMessage.style.left = '50%';
+		    winnerMessage.style.transform = 'translate(-50%, -50%)';
+		    winnerMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+		    winnerMessage.style.color = 'white';
+		    winnerMessage.style.padding = '20px';
+		    winnerMessage.style.borderRadius = '10px';
+		    winnerMessage.style.fontSize = '24px';
+		    winnerMessage.style.zIndex = '1000';
+		    winnerMessage.textContent = `恭喜玩家 ${player} 獲勝！`;
+		    document.body.appendChild(winnerMessage);
+
+		    setTimeout(() => {
+		        document.body.removeChild(winnerMessage);
+		    }, 3000);
+		}
 
 		function placeCharacter(player) {
 		    if (!gameStarted || player !== currentPlayer) return;
@@ -306,6 +346,7 @@
 		        setMessage("請輸入一個字");
 		        return;
 		    }
+			
 
 		    const row = parseInt(selectedCell.dataset.row);
 		    const col = parseInt(selectedCell.dataset.col);
@@ -323,21 +364,14 @@
 		    scores[player - 1] += 1;
 
 		    // 檢查成語得分
-		    checkIdiomScore(row, col);
-
-		    updateScores();
-
-		    if (checkWin(row, col, player)) {
-		        setMessage(`玩家 ${player} 獲勝！`);
-		        endGame();
-		    } else {
-		        currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
-		        setMessage(`輪到玩家 ${currentPlayer}`);
-		        resetTimer();
-		        if (isComputerPlay && currentPlayer === 2) {
-		            setTimeout(computerPlay, 1000);
-		        }
-		    }
+			const originalScore = scores[player - 1];
+			    checkIdiomScore(row, col);
+			    if (scores[player - 1] > originalScore) {
+			        setMessage(`玩家 ${player} 形成了有效成語！`);
+			        setTimeout(() => {
+			            setMessage(`輪到玩家 ${currentPlayer}`);
+			        }, 2000);
+			    }
 
 		    selectedCell.style.backgroundColor = '#fff';
 		    selectedCell = null;
@@ -391,12 +425,30 @@
 		            idiom = board[r][c] + idiom;
 		        }
 
-		        if (idiom.length === 4) {
+		        if (idiom.length === 4 && isValidIdiom(idiom)) {
 		            scores[currentPlayer - 1] += 2;
+		            highlightIdiom(row, col, dx, dy);
 		        }
 		    }
 		}
 
+		function isValidIdiom(idiom) {
+		    return idiomDictionary.includes(idiom);
+		}
+
+		function highlightIdiom(row, col, dx, dy) {
+		    let r = row, c = col;
+		    for (let i = 0; i < 4; i++) {
+		        const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+		        cell.style.backgroundColor = 'yellow';
+		        setTimeout(() => {
+		            cell.style.backgroundColor = '';
+		        }, 1000);
+		        r += dx;
+		        c += dy;
+		    }
+		}
+		
 		function checkWin(row, col, player) {
 		    const directions = [
 		        [1, 0], [0, 1], [1, 1], [1, -1]
@@ -632,9 +684,9 @@
 		    initializeBoard();
 		    resetScores();
 		    setFirstCharacter();
-		    resetTimer(); // 使用 resetTimer 而不是 startTimer
-			document.getElementById('start-button').disabled = true;
-			    document.getElementById('end-game-button').disabled = false;
+		    resetTimer();
+		    document.getElementById('start-button').disabled = true;
+		    document.getElementById('abort-game-button').disabled = false;
 		    setMessage("遊戲開始！玩家1先行");
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = true;
@@ -652,8 +704,10 @@
 		        document.getElementById('timer').textContent = timeLeft;
 		        if (timeLeft === 0) {
 		            clearInterval(timerInterval);
-		            setMessage(`時間到！玩家 ${currentPlayer} 輸了！`);
-		            endGame();
+		            const winner = 3 - currentPlayer; // 當前玩家超時，對手獲勝
+		            setMessage(`時間到！玩家 ${winner} 獲勝！`);
+		            showWinner(winner);
+		            endGame(false);
 		        }
 		    }, 1000);
 		}
@@ -670,16 +724,18 @@
 		    document.getElementById('score2').textContent = scores[1];
 		}
 
-		function endGame() {
+		function endGame(isAborted = true) {
 		    gameStarted = false;
 		    clearInterval(timerInterval);
 		    document.getElementById('start-button').disabled = false;
-		    document.getElementById('end-game-button').disabled = true;
+		    document.getElementById('abort-game-button').disabled = true;
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = false;
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
 		    }
-		    setMessage("遊戲已終止");
+		    if (isAborted) {
+		        setMessage("遊戲已中止");
+		    }
 		}
 
 		// 初始化遊戲
