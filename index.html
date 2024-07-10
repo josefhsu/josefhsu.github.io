@@ -98,10 +98,10 @@
 		    padding: 20px;
 		    border-radius: 10px;
 		}
-        #start-button, #computer-play {
+        #start-button, #computer-play, #end-game-button {
             font-size: 16px;
             padding: 10px 20px;
-            margin-top: 10px;
+            margin-top: -30px;
             cursor: pointer;
         }
         input, button {
@@ -109,9 +109,10 @@
             padding: 5px;
         }
         #timer {
-            font-size: 24px;
+            font-size: 48px;
             font-weight: bold;
             margin-top: 10px;
+			color: #0dF;
         }
         #version-info {
             position: fixed;
@@ -176,6 +177,7 @@
             <p id="message"></p>
             <p id="timer">60</p>
             <button id="start-button" onclick="startGame()">開始遊戲</button>
+			<button id="end-game-button" onclick="endGame()">終止遊戲</button>
             <button id="computer-play" onclick="toggleComputerPlay()">電腦對戰</button>
         </div>
         <div id="right-panel">
@@ -458,14 +460,14 @@
 		        return;
 		    }
 
-		    // 尋找可以形成四子連線的位置
-		    const fourInARowMove = findNInARowMove(4, 2);
-		    if (fourInARowMove) {
-		        makeMove(fourInARowMove.row, fourInARowMove.col, 2);
+		    // 檢查並阻擋玩家的活三或死四
+		    const blockingThreeOrFour = findBlockingThreeOrFour();
+		    if (blockingThreeOrFour) {
+		        makeMove(blockingThreeOrFour.row, blockingThreeOrFour.col, 2);
 		        return;
 		    }
 
-		    // 尋找可以形成三子連線的位置
+		    // 尋找可以形成己方活三的位置
 		    const threeInARowMove = findNInARowMove(3, 2);
 		    if (threeInARowMove) {
 		        makeMove(threeInARowMove.row, threeInARowMove.col, 2);
@@ -485,6 +487,18 @@
 		        const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
 		        makeMove(row, col, 2);
 		    }
+		}
+		function findBlockingThreeOrFour() {
+		    for (let i = 0; i < size; i++) {
+		        for (let j = 0; j < size; j++) {
+		            if (board[i][j] === '' && isValidPlacement(i, j)) {
+		                if (checkThreeOrFour(i, j, 3, false, 1) || checkThreeOrFour(i, j, 4, true, 1)) {
+		                    return { row: i, col: j };
+		                }
+		            }
+		        }
+		    }
+		    return null;
 		}
 
 		function findWinningMove(player) {
@@ -561,7 +575,7 @@
 		    }
 		}
 
-		function checkThreeOrFour(row, col, target, isDead) {
+		function checkThreeOrFour(row, col, target, isDead, player) {
 		    const directions = [
 		        [1, 0], [0, 1], [1, 1], [1, -1]
 		    ];
@@ -578,7 +592,10 @@
 		            if (board[r][c] === '') {
 		                empty++;
 		            } else {
-		                count++;
+		                const cellColor = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color;
+		                if (cellColor === 'green' || cellColor === (player === 1 ? 'blue' : 'red')) {
+		                    count++;
+		                }
 		            }
 		            r += dx;
 		            c += dy;
@@ -590,7 +607,10 @@
 		            if (board[r][c] === '') {
 		                empty++;
 		            } else {
-		                count++;
+		                const cellColor = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color;
+		                if (cellColor === 'green' || cellColor === (player === 1 ? 'blue' : 'red')) {
+		                    count++;
+		                }
 		            }
 		        }
 
@@ -613,7 +633,8 @@
 		    resetScores();
 		    setFirstCharacter();
 		    resetTimer(); // 使用 resetTimer 而不是 startTimer
-		    document.getElementById('start-button').disabled = true;
+			document.getElementById('start-button').disabled = true;
+			    document.getElementById('end-game-button').disabled = false;
 		    setMessage("遊戲開始！玩家1先行");
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = true;
@@ -653,10 +674,12 @@
 		    gameStarted = false;
 		    clearInterval(timerInterval);
 		    document.getElementById('start-button').disabled = false;
+		    document.getElementById('end-game-button').disabled = true;
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = false;
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
 		    }
+		    setMessage("遊戲已終止");
 		}
 
 		// 初始化遊戲
