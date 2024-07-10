@@ -57,7 +57,7 @@
         <h1>成語接龍五子棋</h1>
         <div id="board"></div>
         <div id="input-area">
-            <input type="text" id="idiom-input" placeholder="輸入一個字">
+            <input type="text" id="char-input" maxlength="1" placeholder="輸入一個字">
             <button onclick="placeCharacter()">放置字符</button>
         </div>
         <p id="message"></p>
@@ -117,7 +117,7 @@
                 return;
             }
 
-            const char = document.getElementById('idiom-input').value;
+            const char = document.getElementById('char-input').value;
             if (char.length !== 1) {
                 setMessage("請輸入一個字");
                 return;
@@ -126,7 +126,7 @@
             const row = parseInt(selectedCell.dataset.row);
             const col = parseInt(selectedCell.dataset.col);
 
-            if (!isValidPlacement(row, col, char)) {
+            if (!isValidPlacement(row, col)) {
                 setMessage("無效的放置位置，必須與已有的字相連");
                 return;
             }
@@ -146,12 +146,12 @@
 
             selectedCell.style.backgroundColor = '#fff';
             selectedCell = null;
-            document.getElementById('idiom-input').value = '';
+            document.getElementById('char-input').value = '';
 
             checkWarnings();
         }
 
-        function isValidPlacement(row, col, char) {
+        function isValidPlacement(row, col) {
             const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
             for (let [dx, dy] of directions) {
                 const newRow = row + dx;
