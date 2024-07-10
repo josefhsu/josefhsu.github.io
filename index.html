@@ -42,7 +42,11 @@
             currentIdiom = idioms[Math.floor(Math.random() * idioms.length)];
             document.getElementById("current-idiom").textContent = currentIdiom;
         }
-
+		function isValidIdiom(idiom) {
+		    // 這裡可以添加更複雜的邏輯，比如檢查是否符合成語的語法結構
+		    // 或者調用外部 API 進行驗證
+		    return idiom.length === 4 && /^[\u4e00-\u9fa5]{4}$/.test(idiom);
+		}
         function submitIdiom() {
             const userInput = document.getElementById("user-input").value;
             const message = document.getElementById("message");
@@ -56,6 +60,19 @@
                 message.textContent = "請輸入以「" + currentIdiom[3] + "」開頭的成語";
                 return;
             }
+			if (isValidIdiom(userInput)) {
+			    if (idioms.includes(userInput)) {
+			        // 現有的邏輯
+			    } else {
+			        message.textContent = "這是一個有效的成語，但不在我們的遊戲列表中。我們會記錄下來！";
+			        idioms.push(userInput); // 將新成語添加到列表中
+			        currentIdiom = userInput;
+			        document.getElementById("current-idiom").textContent = currentIdiom;
+			        document.getElementById("user-input").value = "";
+			    }
+			} else {
+			    message.textContent = "這不是一個有效的成語，請重試。";
+			}
 
             if (idioms.includes(userInput)) {
                 currentIdiom = userInput;
