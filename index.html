@@ -176,15 +176,15 @@
             <div id="board"></div>
             <p id="message"></p>
             <p id="timer">60</p>
-            <button id="start-button" onclick="startGame()">開始遊戲</button>
-			<button id="abort-game-button" onclick="endGame(true)" disabled>中止遊戲</button>
+            <button id="start-button" onclick="startGame()">開始</button>
+			<button id="abort-game-button" onclick="endGame(true)" disabled>中止</button>
             <button id="computer-play" onclick="toggleComputerPlay()">電腦對戰</button>
         </div>
         <div id="right-panel">
-            <h2>遊戲規則</h2>
+            <h2>規則</h2>
             <div id="rules">
                 <ol>
-                    <li>遊戲開始時，中央格子會出現一個隨機字符。</li>
+                    <li>開始時，中央格子會出現一個隨機字符。</li>
                     <li>玩家輪流選擇一個與已有字符相鄰的空格，輸入一個字。</li>
                     <li>玩家1的字符為藍色，玩家2的字符為紅色。</li>
                     <li>每放置一個字得1分。</li>
@@ -239,7 +239,7 @@
 
 		function initializeGame() {
 		    initializeBoard();
-		    setMessage("點擊「開始遊戲」按鈕開始");
+		    setMessage("點擊「開始」按鈕開始");
 		    updateVersionInfo();
 		}
 
@@ -287,7 +287,7 @@
 		    setFirstCharacter();
 		    startTimer();
 		    document.getElementById('start-button').disabled = true;
-		    setMessage("遊戲開始！玩家1先行");
+		    setMessage("開始！玩家1先行");
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = true;
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
@@ -719,7 +719,7 @@
 		    resetTimer();
 		    document.getElementById('start-button').disabled = true;
 		    document.getElementById('abort-game-button').disabled = false;
-		    setMessage("遊戲開始！玩家1先行");
+		    setMessage("開始！玩家1先行");
 		    if (isComputerPlay) {
 		        document.getElementById('char-input2').disabled = true;
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = true;
@@ -766,11 +766,11 @@
 		        document.querySelector('button[onclick="placeCharacter(2)"]').disabled = false;
 		    }
 		    if (isAborted) {
-		        setMessage("遊戲已中止");
+		        setMessage("已中止");
 		    }
 		}
 
-		// 初始化遊戲
+		// 初始化
 		initializeGame();
     </script>
 </body>
