@@ -131,151 +131,244 @@
     </div>
 
     <script>
-        const board = [];
-        const size = 12;
-        let currentPlayer = 1;
-        const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰';
-        let timeLeft = 60;
-        let timerInterval;
-        let scores = [0, 0];
-        let gameStarted = false;
+		const board = [];
+		const size = 12;
+		let currentPlayer = 1;
+		const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰';
+		let timeLeft = 60;
+		let timerInterval;
+		let scores = [0, 0];
+		let gameStarted = false;
 
-        function initializeBoard() {
-            const boardElement = document.getElementById('board');
-            boardElement.innerHTML = '';
-            for (let i = 0; i < size; i++) {
-                board[i] = [];
-                for (let j = 0; j < size; j++) {
-                    board[i][j] = '';
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.dataset.row = i;
-                    cell.dataset.col = j;
-                    cell.addEventListener('click', () => selectCell(i, j));
-                    boardElement.appendChild(cell);
-                }
-            }
-        }
+		function initializeBoard() {
+		    const boardElement = document.getElementById('board');
+		    boardElement.innerHTML = '';
+		    for (let i = 0; i < size; i++) {
+		        board[i] = [];
+		        for (let j = 0; j < size; j++) {
+		            board[i][j] = '';
+		            const cell = document.createElement('div');
+		            cell.className = 'cell';
+		            cell.dataset.row = i;
+		            cell.dataset.col = j;
+		            cell.addEventListener('click', () => selectCell(i, j));
+		            boardElement.appendChild(cell);
+		        }
+		    }
+		}
 
-        function startGame() {
-            if (gameStarted) return;
-            gameStarted = true;
-            initializeBoard();
-            setFirstCharacter();
-            startTimer();
-            document.getElementById('start-button').disabled = true;
-            setMessage("遊戲開始！玩家1先行");
-        }
+		function startGame() {
+		    if (gameStarted) return;
+		    gameStarted = true;
+		    initializeBoard();
+		    setFirstCharacter();
+		    startTimer();
+		    document.getElementById('start-button').disabled = true;
+		    setMessage("遊戲開始！玩家1先行");
+		}
 
-        function setFirstCharacter() {
-            const randomChar = characters[Math.floor(Math.random() * characters.length)];
-            const centerRow = Math.floor(size / 2);
-            const centerCol = Math.floor(size / 2);
-            board[centerRow][centerCol] = randomChar;
-            const cell = document.querySelector(`[data-row="${centerRow}"][data-col="${centerCol}"]`);
-            cell.textContent = randomChar;
-            cell.style.color = 'green';
-        }
+		function setFirstCharacter() {
+		    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+		    const centerRow = Math.floor(size / 2);
+		    const centerCol = Math.floor(size / 2);
+		    board[centerRow][centerCol] = randomChar;
+		    const cell = document.querySelector(`[data-row="${centerRow}"][data-col="${centerCol}"]`);
+		    cell.textContent = randomChar;
+		    cell.style.color = 'green';
+		}
 
-        let selectedCell = null;
+		let selectedCell = null;
 
-        function selectCell(row, col) {
-            if (!gameStarted || board[row][col] !== '') return;
-            if (selectedCell) {
-                selectedCell.style.backgroundColor = '#fff';
-            }
-            selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            selectedCell.style.backgroundColor = '#e0e0e0';
-        }
+		function selectCell(row, col) {
+		    if (!gameStarted || board[row][col] !== '') return;
+		    if (selectedCell) {
+		        selectedCell.style.backgroundColor = '#fff';
+		    }
+		    selectedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+		    selectedCell.style.backgroundColor = '#e0e0e0';
+		}
 
-        function placeCharacter(player) {
-            if (!gameStarted || player !== currentPlayer) return;
-            if (!selectedCell) {
-                setMessage("請先選擇一個格子");
-                return;
-            }
+		function placeCharacter(player) {
+		    if (!gameStarted || player !== currentPlayer) return;
+		    if (!selectedCell) {
+		        setMessage("請先選擇一個格子");
+		        return;
+		    }
 
-            const char = document.getElementById(`char-input${player}`).value;
-            if (char.length !== 1) {
-                setMessage("請輸入一個字");
-                return;
-            }
+		    const char = document.getElementById(`char-input${player}`).value;
+		    if (char.length !== 1) {
+		        setMessage("請輸入一個字");
+		        return;
+		    }
 
-            const row = parseInt(selectedCell.dataset.row);
-            const col = parseInt(selectedCell.dataset.col);
+		    const row = parseInt(selectedCell.dataset.row);
+		    const col = parseInt(selectedCell.dataset.col);
 
-            if (!isValidPlacement(row, col)) {
-                setMessage("無效的放置位置，必須與已有的字相連");
-                return;
-            }
+		    if (!isValidPlacement(row, col)) {
+		        setMessage("無效的放置位置，必須與已有的字相連");
+		        return;
+		    }
 
-            board[row][col] = char;
-            selectedCell.textContent = char;
-            selectedCell.style.color = player === 1 ? 'blue' : 'red';
+		    board[row][col] = char;
+		    selectedCell.textContent = char;
+		    selectedCell.style.color = player === 1 ? 'blue' : 'red';
 
-            // 增加基本得分
-            scores[player - 1] += 1;
+		    // 增加基本得分
+		    scores[player - 1] += 1;
 
-            // 檢查成語得分
-            checkIdiomScore(row, col);
+		    // 檢查成語得分
+		    checkIdiomScore(row, col);
 
-            updateScores();
+		    updateScores();
 
-            if (checkWin(row, col)) {
-                setMessage(`玩家 ${player} 獲勝！`);
-                endGame();
-            } else {
-                currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
-                setMessage(`輪到玩家 ${currentPlayer}`);
-                resetTimer();
-            }
+		    if (checkWin(row, col)) {
+		        setMessage(`玩家 ${player} 獲勝！`);
+		        endGame();
+		    } else {
+		        currentPlayer = 3 - currentPlayer;  // 切換玩家 (1 -> 2, 2 -> 1)
+		        setMessage(`輪到玩家 ${currentPlayer}`);
+		        resetTimer();
+		    }
 
-            selectedCell.style.backgroundColor = '#fff';
-            selectedCell = null;
-            document.getElementById(`char-input${player}`).value = '';
+		    selectedCell.style.backgroundColor = '#fff';
+		    selectedCell = null;
+		    document.getElementById(`char-input${player}`).value = '';
 
-            checkWarnings();
-        }
+		    checkWarnings();
+		}
 
-        // 其他函數保持不變...
+		function isValidPlacement(row, col) {
+		    if (row === Math.floor(size / 2) && col === Math.floor(size / 2)) return true;
+		    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
+		    for (let [dx, dy] of directions) {
+		        const newRow = row + dx;
+		        const newCol = col + dy;
+		        if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size && board[newRow][newCol] !== '') {
+		            return true;
+		        }
+		    }
+		    return false;
+		}
 
-        function setMessage(msg) {
-            document.getElementById('message').textContent = msg;
-        }
+		// 其他函數保持不變...
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = timeLeft;
-                if (timeLeft === 0) {
-                    clearInterval(timerInterval);
-                    setMessage(`時間到！玩家 ${currentPlayer} 輸了！`);
-                    endGame();
-                }
-            }, 1000);
-        }
+		function checkIdiomScore(row, col) {
+		    const directions = [
+		        [1, 0], [0, 1], [1, 1], [1, -1]
+		    ];
 
-        function resetTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 60;
-            document.getElementById('timer').textContent = timeLeft;
-            startTimer();
-        }
+		    for (let [dx, dy] of directions) {
+		        let idiom = board[row][col];
+		        let r = row, c = col;
 
-        function updateScores() {
-            document.getElementById('score1').textContent = scores[0];
-            document.getElementById('score2').textContent = scores[1];
-        }
+		        // 向一個方向檢查
+		        for (let i = 1; i < 4; i++) {
+		            r += dx;
+		            c += dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            idiom += board[r][c];
+		        }
 
-        function endGame() {
-            gameStarted = false;
-            clearInterval(timerInterval);
-            document.getElementById('start-button').disabled = false;
-        }
+		        r = row;
+		        c = col;
 
-        // 初始化遊戲
-        initializeBoard();
-        setMessage("點擊「開始遊戲」按鈕開始");
+		        // 向相反方向檢查
+		        for (let i = 1; i < 4; i++) {
+		            r -= dx;
+		            c -= dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+		                break;
+		            }
+		            idiom = board[r][c] + idiom;
+		        }
+
+		        if (idiom.length === 4) {
+		            scores[currentPlayer - 1] += 2;
+		        }
+		    }
+		}
+
+		function checkWin(row, col) {
+		    const directions = [
+		        [1, 0], [0, 1], [1, 1], [1, -1]
+		    ];
+
+		    for (let [dx, dy] of directions) {
+		        let count = 1;
+		        let r = row, c = col;
+
+		        while (count < 5) {
+		            r += dx;
+		            c += dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '' || 
+		                document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color !==
+		                document.querySelector(`[data-row="${row}"][data-col="${col}"]`).style.color) {
+		                break;
+		            }
+		            count++;
+		        }
+
+		        r = row;
+		        c = col;
+
+		        while (count < 5) {
+		            r -= dx;
+		            c -= dy;
+		            if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '' || 
+		                document.querySelector(`[data-row="${r}"][data-col="${c}"]`).style.color !==
+		                document.querySelector(`[data-row="${row}"][data-col="${col}"]`).style.color) {
+		                break;
+		            }
+		            count++;
+		        }
+
+		        if (count >= 5) {
+		            return true;
+		        }
+		    }
+
+		    return false;
+		}
+
+		function setMessage(msg) {
+		    document.getElementById('message').textContent = msg;
+		}
+
+		function startTimer() {
+		    timerInterval = setInterval(() => {
+		        timeLeft--;
+		        document.getElementById('timer').textContent = timeLeft;
+		        if (timeLeft === 0) {
+		            clearInterval(timerInterval);
+		            setMessage(`時間到！玩家 ${currentPlayer} 輸了！`);
+		            endGame();
+		        }
+		    }, 1000);
+		}
+
+		function resetTimer() {
+		    clearInterval(timerInterval);
+		    timeLeft = 60;
+		    document.getElementById('timer').textContent = timeLeft;
+		    startTimer();
+		}
+
+		function updateScores() {
+		    document.getElementById('score1').textContent = scores[0];
+		    document.getElementById('score2').textContent = scores[1];
+		}
+
+		function endGame() {
+		    gameStarted = false;
+		    clearInterval(timerInterval);
+		    document.getElementById('start-button').disabled = false;
+		}
+
+		// 初始化遊戲
+		initializeBoard();
+		setMessage("點擊「開始遊戲」按鈕開始");
     </script>
 </body>
 </html>
