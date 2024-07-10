@@ -15,7 +15,20 @@
             background-color: #f0f0f0;
         }
         #game-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        #left-panel {
+            width: 200px;
             text-align: center;
+            margin-right: 20px;
+        }
+        #center-panel {
+            text-align: center;
+        }
+        #right-panel {
+            width: 300px;
+            margin-left: 20px;
         }
         #board {
             display: grid;
@@ -50,30 +63,51 @@
             font-weight: bold;
             margin-top: 10px;
         }
-        #scores {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
+        .score {
+            font-size: 22pt;
+            margin: 10px 0;
+        }
+        #rules {
+            text-align: left;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <h1>成語接龍五子棋</h1>
-        <div id="board"></div>
-        <div id="input-area">
-            <input type="text" id="char-input" maxlength="1" placeholder="輸入一個字">
-            <button onclick="placeCharacter()">放置字符</button>
+        <div id="left-panel">
+            <div class="score">玩家1分數: <span id="score1">0</span></div>
+            <div class="score">玩家2分數: <span id="score2">0</span></div>
         </div>
-        <p id="message"></p>
-        <p id="timer">60</p>
-        <div id="scores">
-            <p>玩家1分數: <span id="score1">0</span></p>
-            <p>玩家2分數: <span id="score2">0</span></p>
+        <div id="center-panel">
+            <h1>成語接龍五子棋</h1>
+            <div id="board"></div>
+            <div id="input-area">
+                <input type="text" id="char-input" maxlength="1" placeholder="輸入一個字">
+                <button onclick="placeCharacter()">放置字符</button>
+            </div>
+            <p id="message"></p>
+            <p id="timer">60</p>
+        </div>
+        <div id="right-panel">
+            <h2>遊戲規則</h2>
+            <div id="rules">
+                <ol>
+                    <li>遊戲開始時，中央格子會出現一個隨機字符。</li>
+                    <li>玩家輪流選擇一個與已有字符相鄰的空格，輸入一個字。</li>
+                    <li>玩家1的字符為藍色，玩家2的字符為紅色。</li>
+                    <li>每放置一個字得1分。</li>
+                    <li>形成四字成語（不分顏色）額外得2分。</li>
+                    <li>首先形成五個連續同色字符的玩家獲勝。</li>
+                    <li>每回合有60秒時間限制，超時則輸。</li>
+                    <li>黃色邊框表示該位置形成活三或死四。</li>
+                </ol>
+            </div>
         </div>
     </div>
 
     <script>
+        // JavaScript 代碼保持不變
         const board = [];
         const size = 12;
         let currentPlayer = 1;
