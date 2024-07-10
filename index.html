@@ -7,41 +7,38 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 0;
             background-color: #f0f0f0;
         }
         #game-container {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
-        #left-panel {
-            width: 250px;
-            text-align: center;
-            margin-right: 20px;
+        #left-panel, #right-panel {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 20px;
         }
         #center-panel {
+            width: 100%;
+            max-width: 500px;
             text-align: center;
-        }
-        #right-panel {
-            width: 250px;
-            margin-left: 20px;
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(12, 40px);
-            grid-gap: 1px;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1px;
             background-color: #ddd;
             border: 1px solid #999;
+            margin: 0 auto;
         }
         .cell {
-            width: 40px;
-            height: 40px;
+            aspect-ratio: 1;
             background-color: #fff;
             border: 1px solid #ccc;
             display: flex;
@@ -66,17 +63,17 @@
             margin: 0 auto;
         }
         .score {
-            font-size: 22pt;
+            font-size: 18pt;
             margin: 10px 0;
         }
         #rules {
             text-align: left;
             font-size: 14px;
         }
-        #start-button {
-            font-size: 18px;
+        #start-button, #computer-play {
+            font-size: 16px;
             padding: 10px 20px;
-            margin-top: 20px;
+            margin-top: 10px;
             cursor: pointer;
         }
         input, button {
@@ -87,6 +84,36 @@
             font-size: 24px;
             font-weight: bold;
             margin-top: 10px;
+        }
+        #version-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (min-width: 768px) {
+            #game-container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+            }
+            #left-panel, #right-panel {
+                margin-top: 100px;
+            }
+            .score {
+                font-size: 22pt;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .cell {
+                font-size: 12px;
+            }
+            #board {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -112,6 +139,7 @@
             <p id="message"></p>
             <p id="timer">60</p>
             <button id="start-button" onclick="startGame()">開始遊戲</button>
+            <button id="computer-play" onclick="toggleComputerPlay()">電腦對戰</button>
         </div>
         <div id="right-panel">
             <h2>遊戲規則</h2>
@@ -129,6 +157,9 @@
             </div>
         </div>
     </div>
+    
+    <div id="version-info"></div>
+
 
     <script>
 		const board = [];
