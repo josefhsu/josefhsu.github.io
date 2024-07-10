@@ -50,6 +50,11 @@
             font-weight: bold;
             margin-top: 10px;
         }
+        #scores {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -62,6 +67,10 @@
         </div>
         <p id="message"></p>
         <p id="timer">60</p>
+        <div id="scores">
+            <p>玩家1分數: <span id="score1">0</span></p>
+            <p>玩家2分數: <span id="score2">0</span></p>
+        </div>
     </div>
 
     <script>
@@ -71,6 +80,7 @@
         const characters = '天地人和春夏秋冬風雨雷電山川湖海日月星辰';
         let timeLeft = 60;
         let timerInterval;
+        let scores = [0, 0];
 
         function initializeBoard() {
             const boardElement = document.getElementById('board');
@@ -135,6 +145,14 @@
             selectedCell.textContent = char;
             selectedCell.style.color = currentPlayer === 1 ? 'blue' : 'red';
 
+            // 增加基本得分
+            scores[currentPlayer - 1] += 1;
+
+            // 檢查成語得分
+            checkIdiomScore(row, col);
+
+            updateScores();
+
             if (checkWin(row, col)) {
                 setMessage(`玩家 ${currentPlayer} 獲勝！`);
                 clearInterval(timerInterval);
@@ -161,6 +179,44 @@
                 }
             }
             return false;
+        }
+
+        function checkIdiomScore(row, col) {
+            const directions = [
+                [1, 0], [0, 1], [1, 1], [1, -1]
+            ];
+
+            for (let [dx, dy] of directions) {
+                let idiom = board[row][col];
+                let r = row, c = col;
+
+                // 向一個方向檢查
+                for (let i = 1; i < 4; i++) {
+                    r += dx;
+                    c += dy;
+                    if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+                        break;
+                    }
+                    idiom += board[r][c];
+                }
+
+                r = row;
+                c = col;
+
+                // 向相反方向檢查
+                for (let i = 1; i < 4; i++) {
+                    r -= dx;
+                    c -= dy;
+                    if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] === '') {
+                        break;
+                    }
+                    idiom = board[r][c] + idiom;
+                }
+
+                if (idiom.length === 4) {
+                    scores[currentPlayer - 1] += 2;
+                }
+            }
         }
 
         function checkWin(row, col) {
@@ -281,6 +337,11 @@
             timeLeft = 60;
             document.getElementById('timer').textContent = timeLeft;
             startTimer();
+        }
+
+        function updateScores() {
+            document.getElementById('score1').textContent = scores[0];
+            document.getElementById('score2').textContent = scores[1];
         }
 
         initializeBoard();
